@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:funica/components/search_field.dart';
 import 'package:funica/firebase_helper/firestore.dart';
 import 'package:funica/models/banner_model.dart';
@@ -16,6 +17,7 @@ import 'helper/notification.dart';
 import 'package:flutter/material.dart';
 
 import 'components/product_category.dart';
+import 'helper/product_details.dart';
 import 'helper/wishlist.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -32,25 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    // _bannerList = [
-    //   const BannerCard(
-    //     discount: '25%',
-    //     period: "Today's Special!",
-    //     description: 'Get discount for every order, only valid for today',
-    //     image: 'assets/images/chair.png',
-    //   ),
-    //   const BannerCard(
-    //     discount: '14%',
-    //     period: "Today's Special!",
-    //     description: 'Get discount for every order',
-    //     image: 'assets/images/sofa.png',
-    //   ),
-    //   const BannerCard(
-    //     discount: '',
-    //     period: "Today's Special!",
-    //     description: 'Find discounts for today',
-    //   ),
-    // ];
     getBannerList();
     super.initState();
   }
@@ -201,7 +184,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 25),
-                    const SearchField(),
+                    const SearchField(
+                      suffix: Icon(CupertinoIcons.settings_solid),
+                    ),
                     const SizedBox(height: 25),
                     SeeAll(
                       title: 'Special Offers',
@@ -356,108 +341,128 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             itemCount: productList.length,
                             itemBuilder: (BuildContext context, int index) {
-                              return SizedBox(
-                                height: 400,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(
-                                      flex: 4,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xffe7e7e8),
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                        child: Stack(
-                                          children: [
-                                            Center(
-                                              child: Image.network(
-                                                productList[index].image!,
-                                                fit: BoxFit.contain,
-                                                width: 200,
-                                                height: 200,
-                                              ),
-                                            ),
-                                            Align(
-                                              alignment: Alignment.topRight,
-                                              child: Container(
-                                                width: 36,
-                                                height: 36,
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(50),
-                                                  color: Colors.black87.withOpacity(0.2),
-                                                ),
-                                                child: const Center(
-                                                  child: Icon(
-                                                    Icons.favorite,
-                                                    color: Colors.white,
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ProductDetails(
+                                        product: productList,
+                                        index: index,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: SizedBox(
+                                  height: 400,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        flex: 4,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xffe7e7e8),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          child: Stack(
+                                            children: [
+                                              Hero(
+                                                tag: productList[index].image!,
+                                                child: Center(
+                                                  child: Image.network(
+                                                    productList[index].image!,
+                                                    fit: BoxFit.contain,
+                                                    width: 200,
+                                                    height: 200,
                                                   ),
                                                 ),
+                                              ),
+                                              Align(
+                                                alignment: Alignment.topRight,
+                                                child: Container(
+                                                  width: 36,
+                                                  height: 36,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            50),
+                                                    color: Colors.black87
+                                                        .withOpacity(0.2),
+                                                  ),
+                                                  child: const Center(
+                                                    child: Icon(
+                                                      Icons.favorite,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Expanded(
+                                        flex: 3,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              productList[index].name!,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                const Icon(Icons.star_half),
+                                                Text(
+                                                  productList[index].rank!,
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey.shade800,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(6),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        const Color(0xffe7e7e8),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            6),
+                                                  ),
+                                                  child: Text(
+                                                      productList[index].sold!),
+                                                )
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              productList[index]
+                                                  .price!
+                                                  .toString(),
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Expanded(
-                                      flex: 3,
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            productList[index].name!,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.start,
-                                            children: [
-                                              const Icon(Icons.star_half),
-                                              Text(
-                                                productList[index].rank!,
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  color: Colors.grey.shade800,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.all(6),
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      const Color(0xffe7e7e8),
-                                                  borderRadius:
-                                                      BorderRadius.circular(6),
-                                                ),
-                                                child: Text(
-                                                    productList[index].sold!),
-                                              )
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            productList[index]
-                                                .price!
-                                                .toString(),
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               );
                             },

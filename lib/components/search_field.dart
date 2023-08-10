@@ -2,7 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SearchField extends StatelessWidget {
-  const SearchField({super.key});
+  final Widget suffix;
+  const SearchField({super.key, required this.suffix});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +18,7 @@ class SearchField extends StatelessWidget {
           border: InputBorder.none,
           hintText: "Search",
           prefixIcon: Icon(Icons.search),
-          suffixIcon: Icon(CupertinoIcons.settings)
+          suffixIcon: suffix
         ),
       ),
     );
