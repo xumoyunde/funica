@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:funica/models/color_model.dart';
+
 List<ProductModel> productModelFromJson(String str) => List<ProductModel>.from(json.decode(str).map((x) => ProductModel.fromJson(x)));
 
 String productModelToJson(List<ProductModel> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
@@ -14,6 +16,7 @@ class ProductModel {
   bool? isFavourite;
   String? description;
   String? status;
+  // List<ColorModel> color;
 
   ProductModel({
     this.id,
@@ -25,6 +28,7 @@ class ProductModel {
     this.isFavourite,
     this.description,
     this.status,
+    // required this.color,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> data) => ProductModel(
@@ -37,6 +41,7 @@ class ProductModel {
     isFavourite: data["isFavourite"],
     description: data["description"],
     status: data["status"],
+    // color: data['color']
   );
 
   Map<String, dynamic> toJson() => {
@@ -49,5 +54,6 @@ class ProductModel {
     "isFavourite": isFavourite,
     "description": description,
     "status": status,
+    // 'color': color,
   };
 }

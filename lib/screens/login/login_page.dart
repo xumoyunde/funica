@@ -4,6 +4,7 @@ import 'package:funica/components/continue_with.dart';
 import 'package:funica/components/my_textfield.dart';
 import 'package:funica/components/remember_me.dart';
 import 'package:funica/constants/constants.dart';
+import 'package:funica/firebase_helper/auth_controller.dart';
 import 'package:funica/firebase_helper/firebase_auth.dart';
 import 'package:funica/route/app_route.dart';
 import 'package:funica/screens/dashboard/dashboard_screen.dart';
@@ -24,6 +25,8 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   bool isChecked = false;
+
+  final authController = Get.find<AuthController>();
 
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -80,37 +83,17 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 25),
 
                     // email text field
-                    // MyTextfield(
-                    //   controller: _emailController,
-                    //   hintText: "Email",
-                    //   iconUrl: "assets/icons/email.png",
-                    // ),
-
-                    TextField(
+                    MyTextfield(
                       controller: _emailController,
-                      decoration: InputDecoration(
-                        hintText: 'Email',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
+                      hintText: "Email",
+                      iconUrl: "assets/icons/email.png",
                     ),
                     const SizedBox(height: 10),
 
                     // password text field
-                    // MyTextfieldpwd(
-                    //   controller: _passwordController,
-                    //   hintText: "Password",
-                    // ),
-
-                    TextField(
+                    MyTextfieldpwd(
                       controller: _passwordController,
-                      decoration: InputDecoration(
-                        hintText: 'Password',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
+                      hintText: "Password",
                     ),
                     const SizedBox(height: 10),
 
@@ -122,23 +105,24 @@ class _LoginPageState extends State<LoginPage> {
                     MyButton(
                       title: "Sign in",
                       onTap: () async {
-                        String email = _emailController.text.trim();
-                        String password = _passwordController.text;
-                        if (loginValidation(email, password)) {
-                          try {
-                            final auth = FirebaseAuth.instance;
-                            await auth.signInWithEmailAndPassword(
-                              email: email,  // Use the email variable here
-                              password: password,
-                            );
-                            // Authentication successful, navigate to the next screen
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => DashboardScreen()),  // Replace with your desired screen
-                            );
-                          } on FirebaseAuthException catch (e) {
-                            showMessage(e.code.toString());
+                        // Check if email and password are not empty
+                        if (_emailController.text.isNotEmpty &&
+                            _passwordController.text.isNotEmpty) {
+                          // Call the signIn method from AuthController
+                          await authController.signIn(
+                              _emailController.text, _passwordController.text);
+                          // If sign in is successful, navigate to Dashboard screen
+                          if (authController.isLogged.value) {
+                            Get.toNamed(AppRoute.dashboard);
                           }
+                        } else {
+                          // If email or password are empty, show a warning message
+                          Get.snackbar(
+                            'Warning',
+                            'Please enter your email and passwords',
+                            backgroundColor: Colors.redAccent,
+                            colorText: Colors.white,
+                          );
                         }
                       },
                     ),
@@ -240,19 +224,38 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future<void> singIn() async {
-    try {
-      final auth = FirebaseAuth.instance;
-      auth.signInWithEmailAndPassword(
-        email: _emailController.text,
-        password: _passwordController.text,
-      );
-      // Navigator.push(
-      //     context,
-      //     MaterialPageRoute(
-      //         builder: (_) => DashboardScreen()));
-    } on FirebaseAuthException catch (e) {
-      showMessage(e.toString());
-    }
-  }
+// Future<void> singIn() async {
+//   try {
+//     final auth = FirebaseAuth.instance;
+//     auth.signInWithEmailAndPassword(
+//       email: _emailController.text,
+//       password: _passwordController.text,
+//     );
+//     // Navigator.push(
+//     //     context,
+//     //     MaterialPageRoute(
+//     //         builder: (_) => DashboardScreen()));
+//   } on FirebaseAuthException catch (e) {
+//     showMessage(e.toString());
+//   }
+// }
 }
+
+// String email = _emailController.text.trim();
+// String password = _passwordController.text;
+// if (loginValidation(email, password)) {
+//   try {
+//     final auth = FirebaseAuth.instance;
+//     await auth.signInWithEmailAndPassword(
+//       email: email,  // Use the email variable here
+//       password: password,
+//     );
+//     // Authentication successful, navigate to the next screen
+//     Navigator.pushReplacement(
+//       context,
+//       MaterialPageRoute(builder: (context) => DashboardScreen()),  // Replace with your desired screen
+//     );
+//   } on FirebaseAuthException catch (e) {
+//     showMessage(e.code.toString());
+//   }
+// }

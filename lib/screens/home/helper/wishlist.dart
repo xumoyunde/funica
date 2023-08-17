@@ -71,6 +71,7 @@ class WishlistScreen extends StatelessWidget {
                 onTap: () {},
               ),
             ),
+            const SizedBox(height: 25),
             SizedBox(
               height: 30,
               child: ListView.builder(

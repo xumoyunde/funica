@@ -1,18 +1,13 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:funica/firebase_helper/firebase_auth.dart';
 import 'package:funica/screens/dashboard/dashboard_screen.dart';
-import 'package:funica/screens/home/home_screen.\dart';
-import 'package:funica/screens/splash/splash_screen.dart';
 import 'package:funica/screens/toggle/toggle_page.dart';
 import 'package:get/get.dart';
 
+import 'firebase_helper/auth_controller.dart';
 import 'firebase_options.dart';
 import 'route/app_page.dart';
-import 'route/app_route.dart';
 
 /// ********************** SEASON 1 *********************** ///
 // Splash Screen - Completed successfully 12.07.2023
@@ -58,35 +53,61 @@ void main() async {
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.dark,
   ));
+  Get.put(AuthController());
   runApp(const MyApp());
 }
 
+// class MyApp extends StatelessWidget {
+//   const MyApp({Key? key}) : super(key: key);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     mq = MediaQuery.of(context).size;
+//     return GetMaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       home: StreamBuilder<User?>(
+//         stream: FirebaseAuth.instance.authStateChanges(),
+//         builder: (context, snapshot) {
+//           if (snapshot.connectionState == ConnectionState.waiting) {
+//             return const Center(
+//               child: CircularProgressIndicator(),
+//             );
+//           } else {
+//             if(snapshot.hasError){
+//               return Center(child: Text(snapshot.error.toString()),);
+//             } else if(snapshot.hasData && snapshot.data != null){
+//               return DashboardScreen();
+//             } else {
+//               return const TogglePage();
+//             }
+//           }
+//         },
+//       ),
+//     );
+//   }
+// }
+
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    mq = MediaQuery.of(context).size;
+    // Find AuthController
+    final authController = Get.find<AuthController>();
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      home: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else {
-            if(snapshot.hasError){
-              return Center(child: Text(snapshot.error.toString()),);
-            } else if(snapshot.hasData && snapshot.data != null){
-              return DashboardScreen();
-            } else {
-              return const TogglePage();
-            }
-          }
-        },
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
+      home: Obx(() {
+        if (authController.isLogged.value) {
+          return DashboardScreen();
+        } else {
+          return const TogglePage();
+        }
+      }),
+      getPages: AppPage.list,
     );
   }
 }

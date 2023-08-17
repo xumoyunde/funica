@@ -1,13 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:funica/constants/constants.dart';
 import 'package:funica/models/banner_model.dart';
 import 'package:funica/models/category_model.dart';
+import 'package:funica/models/color_model.dart';
 import 'package:funica/models/product_model.dart';
 
 class FirebaseFirestoreService {
   static FirebaseFirestoreService instance = FirebaseFirestoreService();
-  FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Get a reference to the Firestore instance
+  final _firestore = FirebaseFirestore.instance;
 
   Future<List<BannerModel>> getBanners() async {
     try {
@@ -47,7 +49,24 @@ class FirebaseFirestoreService {
       return productList;
     } catch (e) {
       showMessage(e.toString());
+      print(e);
       return [];
     }
   }
+
+
+  // Future<List<ColorModel>> getColor() async {
+  //   try {
+  //
+  //     QuerySnapshot<Map<String, dynamic>> snapshot =
+  //     await _firestore.collection('color').get();
+  //
+  //     List<ColorModel> colorList =
+  //     snapshot.docs.map((e) => ColorModel.fromJson(e.data())).toList();
+  //     return colorList;
+  //   } catch (e) {
+  //     showMessage(e.toString());
+  //     return [];
+  //   }
+  // }
 }

@@ -32,8 +32,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: IconButton(
                 onPressed: () {
                   FirebaseAuth.instance.signOut();
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (_) => const TogglePage()));
+                  Get.put(AppRoute.login);
                 },
                 icon: const Icon(Icons.login_outlined),
               ),

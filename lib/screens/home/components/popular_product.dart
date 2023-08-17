@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 class PopularProduct extends StatefulWidget {
   final String productName;
-  const PopularProduct({Key? key, required this.productName}) : super(key: key);
+  final IconData? icon;
+
+  const PopularProduct({Key? key, required this.productName, this.icon})
+      : super(key: key);
 
   @override
   _PopularProductState createState() => _PopularProductState();
@@ -34,12 +37,27 @@ class _PopularProductState extends State<PopularProduct> {
           border: Border.all(color: Colors.black, width: 1.5),
         ),
         child: Center(
-          child: Text(
-            widget.productName,
-            style: TextStyle(
-              fontSize: 17,
-              color: textColor,
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (widget.icon != null)
+                Container(
+                  margin: const EdgeInsets.only(right: 5),
+                  child: Icon(
+                    widget.icon,
+                    color: textColor,
+                  ),
+                )
+              else
+                const SizedBox(),
+              Text(
+                widget.productName,
+                style: TextStyle(
+                  fontSize: 17,
+                  color: textColor,
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -1,18 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:funica/components/search_field.dart';
 import 'package:funica/firebase_helper/firestore.dart';
 import 'package:funica/models/category_model.dart';
 import 'package:funica/models/product_model.dart';
+import 'package:funica/route/app_route.dart';
 import 'package:funica/screens/home/components/default_appbar.dart';
-import 'package:funica/screens/home/components/popular_product.dart';
-import 'package:funica/screens/home/components/product.dart';
-import 'package:funica/screens/home/components/recent.dart';
+import 'package:get/get.dart';
 
 import 'product_details.dart';
 
 class MostPopular extends StatefulWidget {
-  MostPopular({super.key});
+  const MostPopular({super.key});
 
   @override
   State<MostPopular> createState() => _MostPopularState();
@@ -22,11 +20,15 @@ class _MostPopularState extends State<MostPopular> {
   @override
   void initState() {
     getCategoryList();
+    _foundProduct = productList;
     super.initState();
   }
 
-  List<ProductModel> productList = [];
+  // This list holds the data for the list view
   List<CategoryModel> categoryList = [];
+  List<ProductModel> productList = [];
+  List<CategoryModel> _foundCategory = [];
+  List<ProductModel> _foundProduct = [];
 
   bool isLoading = false;
 
@@ -38,317 +40,330 @@ class _MostPopularState extends State<MostPopular> {
     productList = await FirebaseFirestoreService.instance.getProduct();
     setState(() {
       isLoading = false;
+      _foundCategory = categoryList;
+      _foundProduct = productList;
+      // _filterProduct('mac');
     });
   }
 
-  final List<Map<String, dynamic>> product = [
-    {
-      "title": "Shiny Wooden Chair",
-      "rank": "4.6",
-      "sold": "6.641 sold",
-      "price": "\$115.00"
-    },
-    {
-      "title": "Bedroom Lamp",
-      "rank": "4.8",
-      "sold": "7.461 sold",
-      "price": "\$40.00"
-    },
-    {
-      "title": "Marble Flower Vase",
-      "rank": "4.8",
-      "sold": "6.378 sold",
-      "price": "\$90.00"
-    },
-    {
-      "title": "Knife Package",
-      "rank": "4.5",
-      "sold": "5.372 sold",
-      "price": "\$125.00"
-    },
-  ];
+  // This function is called whenever the text field changes
+  void _filterCategory(String enteredKeyword) {
+    setState(() {
+      isLoading = true;
+    });
+    List<CategoryModel> results = [];
+    if (enteredKeyword.isEmpty) {
+      // if the search field is empty or only contains white-space, we'll display all users
+      results = categoryList;
+    } else {
+      results = categoryList
+          .where((user) =>
+              user.name!.toLowerCase().contains(enteredKeyword.toLowerCase()))
+          .toList();
+      // we use the toLowerCase() method to make it case-insensitive
+      setState(() {
+        isLoading = false;
+      });
+    }
+
+    // Refresh the UI
+    setState(() {
+      _foundCategory = results;
+    });
+  }
+
+  // This function is called whenever the text field changes
+  void _filterProduct(String enteredKeyword) {
+    List<ProductModel> results = [];
+    if (enteredKeyword.isEmpty) {
+      // if the search field is empty or only contains white-space, we'll display all users
+      results = productList;
+    } else {
+      results = productList
+          .where((user) =>
+              user.name!.toLowerCase().contains(enteredKeyword.toLowerCase()))
+          .toList();
+      // we use the toLowerCase() method to make it case-insensitive
+    }
+
+    // Refresh the UI
+    setState(() {
+      _foundProduct = results;
+    });
+  }
+
+  Future<void> refreshCategoryList() async {
+    categoryList = await FirebaseFirestoreService.instance.getCategory();
+    productList = await FirebaseFirestoreService.instance.getProduct();
+  }
 
   bool isSearch = false;
 
+  bool isPressed = false;
+
+  void _onTap(int index) {
+    setState(() {
+      isPressed = !isPressed;
+      _filterCategory(categoryList[index].name);
+      _filterProduct(_foundProduct[index].name!);
+    });
+    print(categoryList[index].name);
+  }
+
   @override
   Widget build(BuildContext context) {
+    Color containerColor = isPressed ? Colors.black : Colors.white;
+    Color textColor = isPressed ? Colors.white : Colors.black;
+
     return Scaffold(
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator(),
             )
-          : isSearch
-              ? Padding(
-                  padding: const EdgeInsets.only(
-                      top: kToolbarHeight, left: 20, right: 20),
-                  child: Column(
-                    children: [
-                      SearchField(
-                        suffix: InkWell(
-                          onTap: () {
-                            setState(() {
-                              isSearch = !isSearch;
-                            });
-                          },
-                          child: const Icon(CupertinoIcons.settings),
-                        ),
+          : RefreshIndicator(
+              onRefresh: () async {
+                await refreshCategoryList();
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 20, right: 20, left: 20),
+                child: Column(
+                  children: [
+                    DefaultAppBar(
+                      title: 'Most Popular',
+                      trailing: InkWell(
+                        onTap: () {
+                          Get.toNamed(AppRoute.searchLayout);
+                        },
+                        child: const Icon(Icons.search),
                       ),
-                      const SizedBox(height: 20),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Recent',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      height: 30,
+                      child: isLoading
+                          ? const Center(
+                              child: CircularProgressIndicator(),
+                            )
+                          : ListView.separated(
+                              separatorBuilder: (context, index) {
+                                return const SizedBox(
+                                  width: 8,
+                                );
+                              },
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: categoryList.length,
+                              itemBuilder: (context, index) {
+                                return Categories(
+                                  productName: categoryList[index].name,
+                                  click: () {
+                                    setState(() {
+                                      _foundCategory[index].name;
+                                    });
+                                    print(_foundCategory[index].name);
+                                    print(categoryList[index].name);
+                                    print(_foundProduct[index].name);
+                                  },
+                                );
+                              },
                             ),
-                          ),
-                          Text(
-                            'Clear All',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Divider(
-                        height: 40,
-                        thickness: 1,
-                      ),
-                      const Expanded(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.vertical,
-                          physics: BouncingScrollPhysics(),
-                          child: Column(
-                            children: [
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                              Recent(),
-                            ],
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              : Padding(
-                  padding: const EdgeInsets.only(top: 20, right: 20, left: 20),
-                  child: Column(
-                    children: [
-                      DefaultAppBar(
-                        title: 'Most Popular',
-                        trailing: InkWell(
-                            onTap: () {
-                              setState(() {
-                                isSearch = !isSearch;
-                              });
-                            },
-                            child: const Icon(Icons.search)),
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        height: 30,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: categoryList.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              height: 24,
-                              margin: const EdgeInsets.only(right: 8),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(36),
-                                border:
-                                    Border.all(color: Colors.black, width: 1.5),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  categoryList[index].name,
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Expanded(
-                        child: productList.isEmpty
-                            ? const Center(
-                                child: Text('Products is empty'),
-                              )
-                            : GridView.builder(
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                        crossAxisCount: 2,
-                                        mainAxisSpacing: 20,
-                                        crossAxisSpacing: 30,
-                                        childAspectRatio: 8 / 14),
-                                itemCount: productList.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  return GestureDetector(
-                                    onTap: (){
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => ProductDetails(
-                                            product: productList,
-                                            index: index,
+                    ),
+                    const SizedBox(height: 20),
+                    Expanded(
+                      child: _foundProduct.isEmpty
+                          ? const Center(
+                              child: Text('Products is empty'),
+                            )
+                          : GridView.builder(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: 2,
+                                      mainAxisSpacing: 20,
+                                      crossAxisSpacing: 30,
+                                      childAspectRatio: 8 / 14),
+                              itemCount: _foundProduct.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    Get.toNamed(
+                                      AppRoute.productDetails,
+                                      arguments: ProductDetails(
+                                        product: _foundProduct,
+                                        index: index,
+                                      ),
+                                    );
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        flex: 4,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xffe7e7e8),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
-                                        ),
-                                      );
-                                    },
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          flex: 4,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xffe7e7e8),
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                            ),
-                                            child: Stack(
-                                              children: [
-                                                Center(
-                                                  child: Hero(
-                                                    tag: productList[index].image!,
-                                                    child: Image.network(
-                                                      productList[index].image!,
-                                                      fit: BoxFit.contain,
-                                                      width: 200,
-                                                      height: 200,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Align(
-                                                  alignment: Alignment.topRight,
-                                                  child: Container(
-                                                    width: 36,
-                                                    height: 36,
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              50),
-                                                      color: Colors.black87,
-                                                    ),
-                                                    child: const Center(
-                                                      child: Icon(
-                                                        Icons.favorite,
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Expanded(
-                                          flex: 3,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                          child: Stack(
                                             children: [
-                                              Text(
-                                                productList[index].name!,
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
+                                              Center(
+                                                child: Hero(
+                                                  tag: _foundProduct[index]
+                                                      .image!,
+                                                  child: Image.network(
+                                                    _foundProduct[index].image!,
+                                                    fit: BoxFit.contain,
+                                                    width: 200,
+                                                    height: 200,
+                                                  ),
                                                 ),
                                               ),
-                                              const SizedBox(height: 8),
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                children: [
-                                                  const Icon(Icons.star_half),
-                                                  Text(
-                                                    productList[index].rank!,
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      color: Colors.grey.shade800,
+                                              Align(
+                                                alignment: Alignment.topRight,
+                                                child: Container(
+                                                  width: 36,
+                                                  height: 36,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            50),
+                                                    color: Colors.black87,
+                                                  ),
+                                                  child: const Center(
+                                                    child: Icon(
+                                                      Icons.favorite,
+                                                      color: Colors.white,
                                                     ),
                                                   ),
-                                                  const SizedBox(width: 10),
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.all(6),
-                                                    decoration: BoxDecoration(
-                                                      color:
-                                                          const Color(0xffe7e7e8),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              6),
-                                                    ),
-                                                    child: Text(
-                                                        productList[index].sold!),
-                                                  )
-                                                ],
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                productList[index]
-                                                    .price!
-                                                    .toString(),
-                                                style: const TextStyle(
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.bold,
                                                 ),
                                               ),
                                             ],
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                      )
-                    ],
-                  ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Expanded(
+                                        flex: 3,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _foundProduct[index].name!,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                const Icon(Icons.star_half),
+                                                Text(
+                                                  _foundProduct[index].rank!,
+                                                  style: TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.grey.shade800,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(6),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        const Color(0xffe7e7e8),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            6),
+                                                  ),
+                                                  child: Text(
+                                                      _foundProduct[index]
+                                                          .sold!),
+                                                )
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              _foundProduct[index]
+                                                  .price!
+                                                  .toString(),
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                    )
+                  ],
                 ),
+              ),
+            ),
+    );
+  }
+}
+
+class Categories extends StatefulWidget {
+  final String productName;
+  final Function() click;
+
+  const Categories({
+    super.key,
+    required this.productName,
+    required this.click,
+  });
+
+  @override
+  State<Categories> createState() => _CategoriesState();
+}
+
+class _CategoriesState extends State<Categories> {
+  bool isPressed = false;
+
+  void _onTap() {
+    setState(() {
+      isPressed = !isPressed;
+    });
+    widget.click();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Color containerColor = isPressed ? Colors.black : Colors.white;
+    Color textColor = isPressed ? Colors.white : Colors.black;
+
+    return GestureDetector(
+      onTap: _onTap,
+      child: Container(
+        height: 24,
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: containerColor,
+          borderRadius: BorderRadius.circular(36),
+          border: Border.all(color: Colors.black, width: 1.5),
+        ),
+        child: Center(
+          child: Text(
+            widget.productName,
+            style: TextStyle(
+              fontSize: 17,
+              color: textColor,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

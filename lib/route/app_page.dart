@@ -1,6 +1,13 @@
 import 'package:funica/screens/dashboard/dashboard_binding.dart';
 import 'package:funica/screens/dashboard/dashboard_screen.dart';
 import 'package:funica/screens/fill_your_profile/fill_your_profile.dart';
+import 'package:funica/screens/home/helper/filter_product.dart';
+import 'package:funica/screens/home/helper/most_popular.dart';
+import 'package:funica/screens/home/helper/notification.dart';
+import 'package:funica/screens/home/helper/product_details.dart';
+import 'package:funica/screens/home/helper/search_layout.dart';
+import 'package:funica/screens/home/helper/special_offers.dart';
+import 'package:funica/screens/home/helper/wishlist.dart';
 import 'package:funica/screens/intro/intro.dart';
 import 'package:funica/screens/intro/intro_binding.dart';
 import 'package:funica/screens/login/create_new_password.dart';
@@ -21,7 +28,7 @@ class AppPage {
     GetPage(
       name: AppRoute.login,
       page: () => const TogglePage(),
-      binding: ToggleBinding(),
+      // binding: ToggleBinding(),
     ),
     GetPage(
       name: AppRoute.createNewPassword,
@@ -34,34 +41,38 @@ class AppPage {
       binding: IntroBinding(),
     ),
     GetPage(
-      name: AppRoute.fill_your_profile,
-      page: () => const FillYourProfile(),
-      binding: IntroBinding(),
+      name: AppRoute.notification,
+      page: () => const NotificationScreen(),
+    ),
+    GetPage(
+      name: AppRoute.wishlist,
+      page: () => WishlistScreen(),
+    ),
+    GetPage(
+      name: AppRoute.specialOffers,
+      page: () => SpecialOffers(),
+    ),
+    GetPage(
+      name: AppRoute.mostPopular,
+      page: () => MostPopular(),
+    ),
+    GetPage(
+      name: AppRoute.productDetails,
+      page: () {
+        ProductDetails prodd = Get.arguments;
+        return prodd;
+      },
+    ),
+    GetPage(
+      name: AppRoute.searchLayout,
+      page: () => SearchLayout()
+    ),
+    GetPage(
+      name: AppRoute.filter,
+      page: () {
+        FilterProduct filterProduct = Get.arguments;
+        return filterProduct;
+      },
     ),
   ];
 }
-
-// class AppPage {
-//   static var list = [
-//     GetPage(
-//       name: AppRoute.dashboard,
-//       page: () => const DashboardScreen(),
-//       binding: DashboardBinding(),
-//     ),
-//     GetPage(
-//       name: AppRoute.login,
-//       page: () => const SplashScreen(),
-//       binding: ToggleBinding(),
-//     ),
-//     GetPage(
-//       name: AppRoute.createNewPassword,
-//       page: () => const CreateNewPassword(),
-//       binding: NewPasswordBinding(),
-//     ),
-//     GetPage(
-//       name: AppRoute.intro,
-//       page: () => const Intro(),
-//       binding: IntroBinding(),
-//     ),
-//   ];
-// }
