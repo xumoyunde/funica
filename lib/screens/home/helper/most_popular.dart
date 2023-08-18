@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:funica/firebase_helper/firestore.dart';
@@ -17,12 +18,12 @@ class MostPopular extends StatefulWidget {
 }
 
 class _MostPopularState extends State<MostPopular> {
-  @override
-  void initState() {
-    getCategoryList();
-    _foundProduct = productList;
-    super.initState();
-  }
+  // @override
+  // void initState() {
+  //   getCategoryList();
+  //   _foundProduct = productList;
+  //   super.initState();
+  // }
 
   // This list holds the data for the list view
   List<CategoryModel> categoryList = [];
@@ -47,20 +48,27 @@ class _MostPopularState extends State<MostPopular> {
   }
 
   // This function is called whenever the text field changes
-  void _filterCategory(String enteredKeyword) {
+// This function is called whenever the category is selected
+  // This function is called whenever the category is selected
+  void _filterCategory(String enteredKeyword, String categoryId) {
     setState(() {
       isLoading = true;
     });
     List<CategoryModel> results = [];
+    List<ProductModel> products = [];
     if (enteredKeyword.isEmpty) {
-      // if the search field is empty or only contains white-space, we'll display all users
+      // if the search field is empty or only contains white-space, we'll display all categories and products
       results = categoryList;
+      products = productList;
     } else {
       results = categoryList
           .where((user) =>
               user.name!.toLowerCase().contains(enteredKeyword.toLowerCase()))
           .toList();
       // we use the toLowerCase() method to make it case-insensitive
+      products =
+          productList.where((product) => product.id == categoryId).toList();
+      // we filter the products by the category id
       setState(() {
         isLoading = false;
       });
@@ -69,6 +77,7 @@ class _MostPopularState extends State<MostPopular> {
     // Refresh the UI
     setState(() {
       _foundCategory = results;
+      _foundProduct = products;
     });
   }
 
@@ -104,11 +113,32 @@ class _MostPopularState extends State<MostPopular> {
   void _onTap(int index) {
     setState(() {
       isPressed = !isPressed;
-      _filterCategory(categoryList[index].name);
+      _filterCategory(categoryList[index].name!, categoryList[index].id);
       _filterProduct(_foundProduct[index].name!);
     });
     print(categoryList[index].name);
   }
+
+  List searchResult = [];
+
+  searchFromFirebase(String query) async {
+    final result = await FirebaseFirestore.instance
+        .collectionGroup('product')
+        .where('name', arrayContains: query)
+        .get();
+    setState(() {
+      searchResult = result.docs.map((e) => e.data()).toList();
+    });
+  }
+
+  @override
+  void initState() {
+    // searchFromFirebase(query);
+    getCategoryList();
+    super.initState();
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -138,35 +168,34 @@ class _MostPopularState extends State<MostPopular> {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    // This is the list view where you display the categories
                     SizedBox(
                       height: 30,
-                      child: isLoading
-                          ? const Center(
-                              child: CircularProgressIndicator(),
-                            )
-                          : ListView.separated(
-                              separatorBuilder: (context, index) {
-                                return const SizedBox(
-                                  width: 8,
-                                );
-                              },
-                              scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(),
-                              itemCount: categoryList.length,
-                              itemBuilder: (context, index) {
-                                return Categories(
-                                  productName: categoryList[index].name,
-                                  click: () {
-                                    setState(() {
-                                      _foundCategory[index].name;
-                                    });
-                                    print(_foundCategory[index].name);
-                                    print(categoryList[index].name);
-                                    print(_foundProduct[index].name);
-                                  },
-                                );
-                              },
-                            ),
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        separatorBuilder: (context, index) {
+                          return SizedBox(
+                            width: 8,
+                          );
+                        },
+                        itemCount: categoryList.length,
+                        itemBuilder: (context, index) {
+                          return Categories(
+                            productName: categoryList[index].name,
+                            categoryId:
+                                categoryList[index].id, // add this argument
+                            click: () {
+                              setState(() {
+                                searchFromFirebase(categoryList[index].name);
+                              });
+                              print(_foundCategory[index].name);
+                              // Call the _filterCategory function with the category name and id
+                              _filterCategory(_foundCategory[index].name!,
+                                  _foundCategory[index].id!);
+                            },
+                          );
+                        },
+                      ),
                     ),
                     const SizedBox(height: 20),
                     Expanded(
@@ -314,52 +343,35 @@ class _MostPopularState extends State<MostPopular> {
   }
 }
 
-class Categories extends StatefulWidget {
+// This is the Categories widget
+class Categories extends StatelessWidget {
   final String productName;
+  final String categoryId; // add this property
   final Function() click;
 
-  const Categories({
-    super.key,
-    required this.productName,
-    required this.click,
-  });
-
-  @override
-  State<Categories> createState() => _CategoriesState();
-}
-
-class _CategoriesState extends State<Categories> {
-  bool isPressed = false;
-
-  void _onTap() {
-    setState(() {
-      isPressed = !isPressed;
-    });
-    widget.click();
-  }
+  const Categories(
+      {super.key,
+      required this.productName,
+      required this.categoryId, // add this parameter
+      required this.click});
 
   @override
   Widget build(BuildContext context) {
-    Color containerColor = isPressed ? Colors.black : Colors.white;
-    Color textColor = isPressed ? Colors.white : Colors.black;
-
-    return GestureDetector(
-      onTap: _onTap,
+    return InkWell(
+      onTap: click,
       child: Container(
-        height: 24,
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        height: 60,
         decoration: BoxDecoration(
-          color: containerColor,
-          borderRadius: BorderRadius.circular(36),
-          border: Border.all(color: Colors.black, width: 1.5),
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(32),
         ),
-        child: Center(
+        child: Align(
+          alignment: Alignment.center,
           child: Text(
-            widget.productName,
+            productName,
             style: TextStyle(
-              fontSize: 17,
-              color: textColor,
+              fontSize: 18,
+              color: Colors.black,
             ),
           ),
         ),

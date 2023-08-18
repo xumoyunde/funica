@@ -123,6 +123,20 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
+  List searchResult = [];
+
+  searchFromFirebase(String query) async {
+    final result = await FirebaseFirestore.instance
+        .collectionGroup('product')
+        .where('name')
+        .get();
+
+    print('result=' + query);
+    setState(() {
+      searchResult = result.docs.map((e) => e.data()).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     String? name = FirebaseAuth.instance.currentUser!.email ?? "Unknown User";
@@ -187,9 +201,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(height: 25),
-              const SearchField(
+              SearchField(
+                onChanged: (query){
+
+                },
                 suffix: Icon(CupertinoIcons.settings_solid),
               ),
+
               const SizedBox(height: 25),
               SeeAll(
                 title: 'Special Offers',

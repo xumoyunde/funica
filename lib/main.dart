@@ -4,9 +4,11 @@ import 'package:flutter/services.dart';
 import 'package:funica/screens/dashboard/dashboard_screen.dart';
 import 'package:funica/screens/toggle/toggle_page.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 
 import 'firebase_helper/auth_controller.dart';
 import 'firebase_options.dart';
+import 'provider/app_provider.dart';
 import 'route/app_page.dart';
 
 /// ********************** SEASON 1 *********************** ///
@@ -94,20 +96,23 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Find AuthController
     final authController = Get.find<AuthController>();
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return ChangeNotifierProvider(
+      create: (context)=> AppProvider(),
+      child: GetMaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: Obx(() {
+          if (authController.isLogged.value) {
+            return DashboardScreen();
+          } else {
+            return const TogglePage();
+          }
+        }),
+        getPages: AppPage.list,
       ),
-      home: Obx(() {
-        if (authController.isLogged.value) {
-          return DashboardScreen();
-        } else {
-          return const TogglePage();
-        }
-      }),
-      getPages: AppPage.list,
     );
   }
 }

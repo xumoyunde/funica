@@ -33,7 +33,7 @@ class _SearchLayoutState extends State<SearchLayout> {
                   bottomSheet(context: context);
                 },
                 child: const Icon(CupertinoIcons.settings),
-              ),
+              ), onChanged: (String ) {  },
             ),
             const SizedBox(height: 20),
             const Row(

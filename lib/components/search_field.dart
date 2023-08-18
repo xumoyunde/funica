@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 
 class SearchField extends StatelessWidget {
   final Widget suffix;
-  const SearchField({super.key, required this.suffix});
+  final Function(String)? onChanged;
+  const SearchField({super.key, required this.suffix, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -14,6 +15,7 @@ class SearchField extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: TextField(
+        onChanged: onChanged,
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: "Search",

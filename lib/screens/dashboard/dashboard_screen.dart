@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:funica/route/app_route.dart';
+import 'package:funica/screens/cart/cart_screen.dart';
 import 'package:funica/screens/home/home_screen.dart';
 import 'package:funica/screens/toggle/toggle_page.dart';
 import 'package:get/get.dart';
@@ -25,7 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           index: tabIndex,
           children: [
             const HomeScreen(),
-            const Text('Hello world'),
+            const CartScreen(),
             const Text('Hello world cart'),
             Container(),
             Center(

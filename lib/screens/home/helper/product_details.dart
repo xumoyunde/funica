@@ -2,7 +2,10 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:funica/components/my_button.dart';
 import 'package:funica/models/product_model.dart';
+import 'package:funica/provider/app_provider.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:readmore/readmore.dart';
 import 'dart:math' as math;
 
@@ -29,6 +32,7 @@ class _ProductDetailsState extends State<ProductDetails> {
     final String sold = widget.product[widget.index].sold!;
     final String description = widget.product[widget.index].description!;
     bool isFavourite = widget.product[widget.index].isFavourite!;
+    final ProductModel product = widget.product[widget.index];
     // final List<ColorModel> color = widget.product[widget.index].color!;
 
     return Scaffold(
@@ -328,7 +332,20 @@ class _ProductDetailsState extends State<ProductDetails> {
                             width: 200,
                             child: MyButton(
                               title: 'Add to Cart',
-                              onTap: () {},
+                              onTap: () {
+                                AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
+                                appProvider.addCartProduct(product);
+                                Get.snackbar('Successfully', 'Added to cart', backgroundColor: Colors.redAccent, colorText: Colors.black);
+                                print('\n');
+                                print('\n');
+                                print('\n');
+                                print('*********************************************');
+                                print(appProvider.getCartProductList);
+                                print('*********************************************');
+                                print('\n');
+                                print('\n');
+                                print('\n');
+                              },
                             ),
                           )
                         ],
