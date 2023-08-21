@@ -2,12 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:funica/components/my_button.dart';
 import 'package:funica/components/search_field.dart';
-import 'package:funica/route/app_route.dart';
 import 'package:funica/screens/home/components/popular_product.dart';
 import 'package:funica/screens/home/components/recent.dart';
-import 'package:funica/screens/home/helper/filter_product.dart';
-import 'package:get/route_manager.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
 
 class SearchLayout extends StatefulWidget {
   const SearchLayout({super.key});
@@ -65,33 +61,6 @@ class _SearchLayoutState extends State<SearchLayout> {
                 physics: BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
-                    Recent(),
                     Recent(),
                     Recent(),
                     Recent(),

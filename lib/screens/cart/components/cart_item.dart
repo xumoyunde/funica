@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:funica/models/product_model.dart';
+import 'package:funica/provider/app_provider.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class CartItem extends StatefulWidget {
   final ProductModel productModel;
   final Function() click;
+
   const CartItem({super.key, required this.productModel, required this.click});
 
   @override
@@ -12,10 +16,19 @@ class CartItem extends StatefulWidget {
 }
 
 class _CartItemState extends State<CartItem> {
-  int qty = 0;
+  double qty = 0;
+
+  @override
+  void initState() {
+    qty = widget.productModel.qty ?? 0;
+    setState(() {});
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final ProductModel product = widget.productModel;
+
     return GestureDetector(
       onTap: widget.click,
       child: Card(
@@ -55,7 +68,15 @@ class _CartItemState extends State<CartItem> {
                           ),
                         ),
                         InkWell(
-                          onTap: () {},
+                          onTap: () {
+                            AppProvider appProvider = Provider.of<AppProvider>(
+                                context,
+                                listen: false);
+                            appProvider.removeCartProduct(product);
+                            Get.snackbar('Message', 'Removed from Cart',
+                                backgroundColor: Colors.redAccent,
+                                colorText: Colors.white);
+                          },
                           child: const Icon(Icons.delete),
                         ),
                       ],

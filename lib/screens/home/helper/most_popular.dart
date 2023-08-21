@@ -1,10 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:funica/firebase_helper/firestore.dart';
 import 'package:funica/models/category_model.dart';
 import 'package:funica/models/product_model.dart';
 import 'package:funica/route/app_route.dart';
+import 'package:funica/screens/home/components/category_builder.dart';
 import 'package:funica/screens/home/components/default_appbar.dart';
 import 'package:get/get.dart';
 
@@ -18,18 +18,9 @@ class MostPopular extends StatefulWidget {
 }
 
 class _MostPopularState extends State<MostPopular> {
-  // @override
-  // void initState() {
-  //   getCategoryList();
-  //   _foundProduct = productList;
-  //   super.initState();
-  // }
-
-  // This list holds the data for the list view
-  List<CategoryModel> categoryList = [];
-  List<ProductModel> productList = [];
-  List<CategoryModel> _foundCategory = [];
-  List<ProductModel> _foundProduct = [];
+  List<CategoryModel> _categoryList = [];
+  List<ProductModel> _productList = [];
+  List<ProductModel> _filteredProductList = [];
 
   bool isLoading = false;
 
@@ -37,38 +28,44 @@ class _MostPopularState extends State<MostPopular> {
     setState(() {
       isLoading = true;
     });
-    categoryList = await FirebaseFirestoreService.instance.getCategory();
-    productList = await FirebaseFirestoreService.instance.getProduct();
+    _categoryList = await FirebaseFirestoreService.instance.getCategory();
+    _categoryList.shuffle();
+    _categoryList.insert(0, CategoryModel(name: 'All', id: ''));
+
+    _productList = await FirebaseFirestoreService.instance.getProduct();
     setState(() {
       isLoading = false;
-      _foundCategory = categoryList;
-      _foundProduct = productList;
-      // _filterProduct('mac');
+      _filteredProductList = _productList;
     });
   }
 
-  // This function is called whenever the text field changes
-// This function is called whenever the category is selected
+  @override
+  void initState() {
+    getCategoryList();
+    super.initState();
+  }
+
+  bool isPressed = false;
+
+  String selectedCategory = 'All';
+
   // This function is called whenever the category is selected
-  void _filterCategory(String enteredKeyword, String categoryId) {
+  void filterProductsByCategory(String enteredKeyword) {
     setState(() {
       isLoading = true;
     });
-    List<CategoryModel> results = [];
     List<ProductModel> products = [];
-    if (enteredKeyword.isEmpty) {
-      // if the search field is empty or only contains white-space, we'll display all categories and products
-      results = categoryList;
-      products = productList;
+    if (enteredKeyword == 'All') {
+      // if the keyword is 'All', show all products
+      products = _productList;
+      setState(() {
+        isLoading = false;
+      });
     } else {
-      results = categoryList
-          .where((user) =>
-              user.name!.toLowerCase().contains(enteredKeyword.toLowerCase()))
+      // otherwise, filter by category id
+      products = _productList
+          .where((product) => product.category == enteredKeyword)
           .toList();
-      // we use the toLowerCase() method to make it case-insensitive
-      products =
-          productList.where((product) => product.id == categoryId).toList();
-      // we filter the products by the category id
       setState(() {
         isLoading = false;
       });
@@ -76,69 +73,28 @@ class _MostPopularState extends State<MostPopular> {
 
     // Refresh the UI
     setState(() {
-      _foundCategory = results;
-      _foundProduct = products;
-    });
-  }
-
-  // This function is called whenever the text field changes
-  void _filterProduct(String enteredKeyword) {
-    List<ProductModel> results = [];
-    if (enteredKeyword.isEmpty) {
-      // if the search field is empty or only contains white-space, we'll display all users
-      results = productList;
-    } else {
-      results = productList
-          .where((user) =>
-              user.name!.toLowerCase().contains(enteredKeyword.toLowerCase()))
-          .toList();
-      // we use the toLowerCase() method to make it case-insensitive
-    }
-
-    // Refresh the UI
-    setState(() {
-      _foundProduct = results;
+      _filteredProductList = products;
     });
   }
 
   Future<void> refreshCategoryList() async {
-    categoryList = await FirebaseFirestoreService.instance.getCategory();
-    productList = await FirebaseFirestoreService.instance.getProduct();
-  }
-
-  bool isSearch = false;
-
-  bool isPressed = false;
-
-  void _onTap(int index) {
     setState(() {
-      isPressed = !isPressed;
-      _filterCategory(categoryList[index].name!, categoryList[index].id);
-      _filterProduct(_foundProduct[index].name!);
+      isLoading = true;
     });
-    print(categoryList[index].name);
-  }
 
-  List searchResult = [];
+    _categoryList.clear();
+    _productList.clear();
+    _filteredProductList.clear();
 
-  searchFromFirebase(String query) async {
-    final result = await FirebaseFirestore.instance
-        .collectionGroup('product')
-        .where('name', arrayContains: query)
-        .get();
+    _categoryList = await FirebaseFirestoreService.instance.getCategory();
+    _categoryList.insert(0, CategoryModel(name: 'All', id: ''));
+    _productList = await FirebaseFirestoreService.instance.getProduct();
+
     setState(() {
-      searchResult = result.docs.map((e) => e.data()).toList();
+      isLoading = false;
+    _filteredProductList = _productList;
     });
   }
-
-  @override
-  void initState() {
-    // searchFromFirebase(query);
-    getCategoryList();
-    super.initState();
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -178,20 +134,17 @@ class _MostPopularState extends State<MostPopular> {
                             width: 8,
                           );
                         },
-                        itemCount: categoryList.length,
+                        itemCount: _categoryList.length,
                         itemBuilder: (context, index) {
-                          return Categories(
-                            productName: categoryList[index].name,
-                            categoryId:
-                                categoryList[index].id, // add this argument
+                          return CategoryBuilder(
+                            name: _categoryList[index].name,
+                            selectedCategory: selectedCategory,
                             click: () {
+                              filterProductsByCategory(
+                                  _categoryList[index].name);
                               setState(() {
-                                searchFromFirebase(categoryList[index].name);
+                                selectedCategory = _categoryList[index].name;
                               });
-                              print(_foundCategory[index].name);
-                              // Call the _filterCategory function with the category name and id
-                              _filterCategory(_foundCategory[index].name!,
-                                  _foundCategory[index].id!);
                             },
                           );
                         },
@@ -199,7 +152,7 @@ class _MostPopularState extends State<MostPopular> {
                     ),
                     const SizedBox(height: 20),
                     Expanded(
-                      child: _foundProduct.isEmpty
+                      child: _filteredProductList.isEmpty
                           ? const Center(
                               child: Text('Products is empty'),
                             )
@@ -210,15 +163,14 @@ class _MostPopularState extends State<MostPopular> {
                                       mainAxisSpacing: 20,
                                       crossAxisSpacing: 30,
                                       childAspectRatio: 8 / 14),
-                              itemCount: _foundProduct.length,
+                              itemCount: _filteredProductList.length,
                               itemBuilder: (BuildContext context, int index) {
                                 return GestureDetector(
                                   onTap: () {
                                     Get.toNamed(
                                       AppRoute.productDetails,
                                       arguments: ProductDetails(
-                                        product: _foundProduct,
-                                        index: index,
+                                        product: _filteredProductList[index],
                                       ),
                                     );
                                   },
@@ -239,10 +191,12 @@ class _MostPopularState extends State<MostPopular> {
                                             children: [
                                               Center(
                                                 child: Hero(
-                                                  tag: _foundProduct[index]
+                                                  tag: _filteredProductList[
+                                                          index]
                                                       .image!,
                                                   child: Image.network(
-                                                    _foundProduct[index].image!,
+                                                    _filteredProductList[index]
+                                                        .image!,
                                                     fit: BoxFit.contain,
                                                     width: 200,
                                                     height: 200,
@@ -280,7 +234,7 @@ class _MostPopularState extends State<MostPopular> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              _foundProduct[index].name!,
+                                              _filteredProductList[index].name!,
                                               style: const TextStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.bold,
@@ -293,7 +247,8 @@ class _MostPopularState extends State<MostPopular> {
                                               children: [
                                                 const Icon(Icons.star_half),
                                                 Text(
-                                                  _foundProduct[index].rank!,
+                                                  _filteredProductList[index]
+                                                      .rank!,
                                                   style: TextStyle(
                                                     fontSize: 14,
                                                     color: Colors.grey.shade800,
@@ -311,14 +266,15 @@ class _MostPopularState extends State<MostPopular> {
                                                             6),
                                                   ),
                                                   child: Text(
-                                                      _foundProduct[index]
+                                                      _filteredProductList[
+                                                              index]
                                                           .sold!),
                                                 )
                                               ],
                                             ),
                                             const SizedBox(height: 8),
                                             Text(
-                                              _foundProduct[index]
+                                              _filteredProductList[index]
                                                   .price!
                                                   .toString(),
                                               style: const TextStyle(
@@ -339,43 +295,6 @@ class _MostPopularState extends State<MostPopular> {
                 ),
               ),
             ),
-    );
-  }
-}
-
-// This is the Categories widget
-class Categories extends StatelessWidget {
-  final String productName;
-  final String categoryId; // add this property
-  final Function() click;
-
-  const Categories(
-      {super.key,
-      required this.productName,
-      required this.categoryId, // add this parameter
-      required this.click});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: click,
-      child: Container(
-        height: 60,
-        decoration: BoxDecoration(
-          color: Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(32),
-        ),
-        child: Align(
-          alignment: Alignment.center,
-          child: Text(
-            productName,
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.black,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

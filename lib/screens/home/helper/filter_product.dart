@@ -55,7 +55,7 @@ class _FilterProductState extends State<FilterProduct> {
     } else {
       results = productList
           .where((user) =>
-          user.name!.toLowerCase().contains(enteredKeyword.toLowerCase()))
+          user.name.toLowerCase().contains(enteredKeyword.toLowerCase()))
           .toList();
       // we use the toLowerCase() method to make it case-insensitive
     }
@@ -115,7 +115,7 @@ class _FilterProductState extends State<FilterProduct> {
                                 Get.toNamed(
                                   AppRoute.productDetails,
                                   arguments: ProductDetails(
-                                      product: _foundProduct, index: index),
+                                      product: _foundProduct[index]),
                                 );
                               },
                               child: SizedBox(
@@ -136,9 +136,9 @@ class _FilterProductState extends State<FilterProduct> {
                                           children: [
                                             Center(
                                               child: Hero(
-                                                tag: _foundProduct[index].image!,
+                                                tag: _foundProduct[index].image,
                                                 child: Image.network(
-                                                  _foundProduct[index].image!,
+                                                  _foundProduct[index].image,
                                                   fit: BoxFit.contain,
                                                   width: 200,
                                                   height: 200,
@@ -176,7 +176,7 @@ class _FilterProductState extends State<FilterProduct> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            _foundProduct[index].name!,
+                                            _foundProduct[index].name,
                                             style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
@@ -213,8 +213,7 @@ class _FilterProductState extends State<FilterProduct> {
                                           const SizedBox(height: 8),
                                           Text(
                                             _foundProduct[index]
-                                                .price!
-                                                .toString(),
+                                                .price.toString(),
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,

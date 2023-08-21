@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:funica/components/my_button.dart';
@@ -10,9 +11,12 @@ import 'package:readmore/readmore.dart';
 import 'dart:math' as math;
 
 class ProductDetails extends StatefulWidget {
-  final List<ProductModel> product;
-  final int index;
-  const ProductDetails({super.key, required this.product, required this.index});
+  final ProductModel product;
+
+  const ProductDetails({
+    super.key,
+    required this.product,
+  });
 
   @override
   State<ProductDetails> createState() => _ProductDetailsState();
@@ -20,20 +24,21 @@ class ProductDetails extends StatefulWidget {
 
 class _ProductDetailsState extends State<ProductDetails> {
   int _currentIndex = 0;
-  int qty = 0;
+  double qty = 0;
   int selectedColor = 0;
-
 
   @override
   Widget build(BuildContext context) {
-    final String image = widget.product[widget.index].image!;
-    final String name = widget.product[widget.index].name!;
-    final String rank = widget.product[widget.index].rank!;
-    final String sold = widget.product[widget.index].sold!;
-    final String description = widget.product[widget.index].description!;
-    bool isFavourite = widget.product[widget.index].isFavourite!;
-    final ProductModel product = widget.product[widget.index];
+    String image = widget.product.image;
+    String name = widget.product.name;
+    String rank = widget.product.rank!;
+    String sold = widget.product.sold!;
+    String description = widget.product.description;
+    bool isFavourite = widget.product.isFavourite;
+    ProductModel product = widget.product;
     // final List<ColorModel> color = widget.product[widget.index].color!;
+
+    AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
 
     return Scaffold(
       backgroundColor: const Color(0xfff4f4f4),
@@ -54,9 +59,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                   Hero(
                     tag: image,
                     child: CarouselSlider(
-                      items: widget.product
-                          .map((e) => Image.network(image))
-                          .toList(),
+                      items: [
+                        CachedNetworkImage(imageUrl: image),
+                      ],
                       options: CarouselOptions(
                           viewportFraction: 1,
                           aspectRatio: 16 / 9,
@@ -98,9 +103,14 @@ class _ProductDetailsState extends State<ProductDetails> {
                           IconButton(
                             onPressed: () {
                               setState(() {
-                                widget.product[widget.index].isFavourite =
-                                    !widget.product[widget.index].isFavourite!;
+                                widget.product.isFavourite =
+                                    !widget.product.isFavourite;
                               });
+                              if (product.isFavourite) {
+                                appProvider.addFavouriteProduct(product);
+                              } else {
+                                appProvider.removeFavouriteProduct(product);
+                              }
                               print(isFavourite);
                             },
                             icon: Image.asset(
@@ -224,7 +234,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                           itemCount: 2,
                           itemBuilder: (context, index) {
                             return InkWell(
-                              onTap: (){
+                              onTap: () {
                                 setState(() {
                                   selectedColor = index;
                                 });
@@ -236,9 +246,14 @@ class _ProductDetailsState extends State<ProductDetails> {
                                     .withOpacity(1.0),
                                 child: Stack(
                                   children: [
-                                    selectedColor == index ? Center(
-                                      child: Icon(Icons.done, color: Colors.white,),
-                                    ): SizedBox(),
+                                    selectedColor == index
+                                        ? Center(
+                                            child: Icon(
+                                              Icons.done,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : SizedBox(),
                                     Container(
                                       width: 36,
                                       height: 36,
@@ -333,15 +348,20 @@ class _ProductDetailsState extends State<ProductDetails> {
                             child: MyButton(
                               title: 'Add to Cart',
                               onTap: () {
-                                AppProvider appProvider = Provider.of<AppProvider>(context, listen: false);
-                                appProvider.addCartProduct(product);
-                                Get.snackbar('Successfully', 'Added to cart', backgroundColor: Colors.redAccent, colorText: Colors.black);
+                                ProductModel productModel =
+                                    product.copyWith(qty: qty);
+                                appProvider.addCartProduct(productModel);
+                                Get.snackbar('Successfully', 'Added to cart',
+                                    backgroundColor: Colors.redAccent,
+                                    colorText: Colors.black);
                                 print('\n');
                                 print('\n');
                                 print('\n');
-                                print('*********************************************');
+                                print(
+                                    '*********************************************');
                                 print(appProvider.getCartProductList);
-                                print('*********************************************');
+                                print(
+                                    '*********************************************');
                                 print('\n');
                                 print('\n');
                                 print('\n');

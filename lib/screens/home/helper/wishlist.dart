@@ -1,64 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:funica/firebase_helper/firestore.dart';
+import 'package:funica/models/category_model.dart';
+import 'package:funica/models/product_model.dart';
+import 'package:funica/screens/home/components/category_builder.dart';
 import 'package:funica/screens/home/components/default_appbar.dart';
-import 'package:funica/screens/home/components/popular_product.dart';
 import 'package:funica/screens/home/components/product.dart';
 
-class WishlistScreen extends StatelessWidget {
-  WishlistScreen({super.key});
+class WishlistScreen extends StatefulWidget {
+  const WishlistScreen({super.key});
 
-  final List<Widget> _popularProduct = [
-    const PopularProduct(
-      productName: 'All',
-    ),
-    const PopularProduct(
-      productName: 'Sofa',
-    ),
-    const PopularProduct(
-      productName: 'Chair',
-    ),
-    const PopularProduct(
-      productName: 'Table',
-    ),
-    const PopularProduct(
-      productName: 'Kitchen',
-    ),
-    const PopularProduct(
-      productName: 'Chair',
-    ),
-    const PopularProduct(
-      productName: 'Chair',
-    ),
-  ];
+  @override
+  State<WishlistScreen> createState() => _WishlistScreenState();
+}
 
-  final List<Map<String, dynamic>> product = [
-    {
-      "title": "Shiny Wooden Chair",
-      "rank": "4.6",
-      "sold": "6.641 sold",
-      "price": "\$115.00"
-    },
-    {
-      "title": "Bedroom Lamp",
-      "rank": "4.8",
-      "sold": "7.461 sold",
-      "price": "\$40.00"
-    },
-    {
-      "title": "Marble Flower Vase",
-      "rank": "4.8",
-      "sold": "6.378 sold",
-      "price": "\$90.00"
-    },
-    {
-      "title": "Knife Package",
-      "rank": "4.5",
-      "sold": "5.372 sold",
-      "price": "\$125.00"
-    },
-  ];
+class _WishlistScreenState extends State<WishlistScreen> {
+  List<CategoryModel> _categoryList = [];
+  List<ProductModel> _productList = [];
+  List<ProductModel> _filteredProductList = [];
+
+  String _selectedCategory = '';
+
+  bool isLoading = false;
+
+  Future<void> getCategoryList() async {
+    setState(() {
+      isLoading = true;
+    });
+    _categoryList = await FirebaseFirestoreService.instance.getCategory();
+    _categoryList.insert(0, CategoryModel(name: 'All', id: ''));
+    _productList = await FirebaseFirestoreService.instance.getProduct();
+    setState(() {
+      isLoading = false;
+      _filteredProductList = _productList;
+    });
+  }
+
+  @override
+  void initState() {
+    getCategoryList();
+    super.initState();
+  }
+
+  bool isPressed = false;
+
+  String selectedCategory = 'All';
+
+  // This function is called whenever the category is selected
+  void filterProductsByCategory(String enteredKeyword) {
+    setState(() {
+      isLoading = true;
+    });
+    List<ProductModel> products = [];
+    if (enteredKeyword == 'All') {
+      // if the keyword is 'All', show all products
+      products = _productList;
+      setState(() {
+        isLoading = false;
+      });
+    } else {
+      // otherwise, filter by category id
+      products = _productList
+          .where((product) => product.category == enteredKeyword)
+          .toList();
+      setState(() {
+        isLoading = false;
+      });
+    }
+
+    // Refresh the UI
+    setState(() {
+      _filteredProductList = products;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    // _categoryList.add(CategoryModel(name: 'All', id: ''));
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -77,9 +95,17 @@ class WishlistScreen extends StatelessWidget {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                itemCount: _popularProduct.length,
+                itemCount: _categoryList.length,
                 itemBuilder: (context, index) {
-                  return _popularProduct[index];
+                  return CategoryBuilder(
+                      name: _categoryList[index].name,
+                      selectedCategory: selectedCategory,
+                      click: () {
+                        filterProductsByCategory(_categoryList[index].name);
+                        setState(() {
+                          selectedCategory = _categoryList[index].name;
+                        });
+                      });
                 },
               ),
             ),
@@ -90,13 +116,10 @@ class WishlistScreen extends StatelessWidget {
                     mainAxisSpacing: 20,
                     crossAxisSpacing: 30,
                     childAspectRatio: 8 / 12),
-                itemCount: product.length,
+                itemCount: _filteredProductList.length,
                 itemBuilder: (BuildContext context, int index) {
                   return Product(
-                    title: product[index]['title'],
-                    sold: product[index]['sold'],
-                    rank: product[index]['rank'] + ' |',
-                    price: product[index]['price'],
+                    product: _filteredProductList[index],
                   );
                 },
               ),

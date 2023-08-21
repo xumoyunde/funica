@@ -56,23 +56,33 @@ class _CartScreenState extends State<CartScreen> {
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: ListView.separated(
-                  separatorBuilder: (context, index) {
-                    return const SizedBox(height: 10);
-                  },
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: appProvider.getCartProductList.length,
-                  itemBuilder: (context, index) {
-                    return CartItem(
-                      click: (){
-                        Get.toNamed(AppRoute.productDetails, arguments: ProductDetails(product: appProvider.getCartProductList, index: index));
-                      },
-                      productModel: appProvider.getCartProductList[index],
-                    );
-                  },
-                ),
+                child: appProvider.getCartProductList.isEmpty
+                    ? Center(
+                        child: Text('Cart is Empty'),
+                      )
+                    : ListView.separated(
+                        separatorBuilder: (context, index) {
+                          return const SizedBox(height: 10);
+                        },
+                        scrollDirection: Axis.vertical,
+                        shrinkWrap: true,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: appProvider.getCartProductList.length,
+                        itemBuilder: (context, index) {
+                          return CartItem(
+                            click: () {
+                              Get.toNamed(
+                                AppRoute.productDetails,
+                                arguments: ProductDetails(
+                                  product:
+                                      appProvider.getCartProductList[index],
+                                ),
+                              );
+                            },
+                            productModel: appProvider.getCartProductList[index],
+                          );
+                        },
+                      ),
               )
             ],
           ),
