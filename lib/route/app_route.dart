@@ -10,4 +10,5 @@ class AppRoute {
   static const String productDetails = '/productDetails';
   static const String searchLayout = '/searchLayout';
   static const String filter = '/filter';
+  static const String fillYourProfile = '/fillYourProfile';
 }

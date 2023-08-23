@@ -74,5 +74,12 @@ class AppPage {
         return filterProduct;
       },
     ),
+    GetPage(
+      name: AppRoute.fillYourProfile,
+      page: () {
+        FillYourProfile fillYourProfile = Get.arguments;
+        return fillYourProfile;
+      },
+    ),
   ];
 }

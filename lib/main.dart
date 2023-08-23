@@ -43,7 +43,6 @@ import 'route/app_page.dart';
 // Enter Your PIN
 // Order Successfully
 
-late Size mq;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

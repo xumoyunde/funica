@@ -50,27 +50,26 @@ class _ProductDetailsState extends State<ProductDetails> {
             children: [
               InkWell(
                 onTap: () {
-                  Navigator.pop(context);
+                  Get.back();
                 },
                 child: const Icon(Icons.arrow_back),
               ),
               Column(
                 children: [
-                  Hero(
-                    tag: image,
-                    child: CarouselSlider(
-                      items: [
-                        CachedNetworkImage(imageUrl: image),
-                      ],
-                      options: CarouselOptions(
-                          viewportFraction: 1,
-                          aspectRatio: 16 / 9,
-                          onPageChanged: (index, reason) {
-                            setState(() {
-                              _currentIndex = index;
-                            });
-                          }),
-                    ),
+                  CarouselSlider(
+                    items: [
+                      Hero(
+                          tag: image,
+                          child: CachedNetworkImage(imageUrl: image)),
+                    ],
+                    options: CarouselOptions(
+                        viewportFraction: 1,
+                        aspectRatio: 16 / 9,
+                        onPageChanged: (index, reason) {
+                          setState(() {
+                            _currentIndex = index;
+                          });
+                        }),
                   ),
                 ],
               ),
@@ -119,7 +118,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                   : 'assets/icons/favourite.png',
                               width: 30,
                             ),
-                          )
+                          ),
                         ],
                       ),
                       const SizedBox(height: 10),
@@ -348,23 +347,27 @@ class _ProductDetailsState extends State<ProductDetails> {
                             child: MyButton(
                               title: 'Add to Cart',
                               onTap: () {
-                                ProductModel productModel =
-                                    product.copyWith(qty: qty);
-                                appProvider.addCartProduct(productModel);
-                                Get.snackbar('Successfully', 'Added to cart',
-                                    backgroundColor: Colors.redAccent,
-                                    colorText: Colors.black);
-                                print('\n');
-                                print('\n');
-                                print('\n');
-                                print(
-                                    '*********************************************');
-                                print(appProvider.getCartProductList);
-                                print(
-                                    '*********************************************');
-                                print('\n');
-                                print('\n');
-                                print('\n');
+                                try {
+                                  ProductModel productModel = product.copyWith(qty: qty);
+                                  if (appProvider.getCartProductList.contains(widget.product)) {
+                                    print(appProvider.getCartProductList);
+                                    Get.snackbar('Message', 'Already exists',
+                                        backgroundColor: Colors.redAccent,
+                                        colorText: Colors.black);
+                                  } else {
+                                    appProvider.addCartProduct(productModel);
+                                    print(appProvider.getCartProductList.map((e) => print(e.name)));
+                                    Get.snackbar('Successfully', 'Added to cart',
+                                        backgroundColor: Colors.redAccent,
+                                        colorText: Colors.black);
+
+                                  }
+                                } catch (e) {
+                                  print('Error: $e');
+                                  Get.snackbar('Error', 'An error occurred',
+                                      backgroundColor: Colors.redAccent,
+                                      colorText: Colors.black);
+                                }
                               },
                             ),
                           )

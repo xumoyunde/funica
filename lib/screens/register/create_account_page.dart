@@ -4,16 +4,19 @@ import 'package:funica/components/continue_with.dart';
 import 'package:funica/components/my_textfield.dart';
 import 'package:funica/components/remember_me.dart';
 import 'package:funica/constants/constants.dart';
+import 'package:funica/firebase_helper/auth_controller.dart';
 import 'package:funica/route/app_route.dart';
 import 'package:funica/screens/fill_your_profile/fill_your_profile.dart';
 import 'package:funica/screens/lets_you_in/start_page.dart';
+import 'package:get/get.dart';
 
 import '../../components/my_button.dart';
 
 class CreateAccount extends StatefulWidget {
   final VoidCallback showLoginPage;
+  final String? name;
 
-  const CreateAccount({super.key, required this.showLoginPage});
+  const CreateAccount({super.key, required this.showLoginPage, this.name});
 
   @override
   State<CreateAccount> createState() => _CreateAccountState();
@@ -24,29 +27,6 @@ class _CreateAccountState extends State<CreateAccount> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-
-  void _nextScreen(BuildContext context) async {
-    try {
-      if (signUpValidation(_emailController.text, _passwordController.text,
-          _confirmPasswordController.text)) {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
-        );
-
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => FillYourProfile()));
-        print('successful');
-      } else {
-        // Show error message to the user
-        showMessage('Passwords do not match or validation failed');
-      }
-    } on FirebaseAuthException catch (e) {
-      // Show specific error message based on the exception code
-      showMessage(e.code.toString());
-    }
-
-  }
 
   @override
   void dispose() {
@@ -134,7 +114,10 @@ class _CreateAccountState extends State<CreateAccount> {
                   MyButton(
                     title: "Sign up",
                     onTap: () {
-                      _nextScreen(context);
+                      Get.toNamed(AppRoute.fillYourProfile, arguments: FillYourProfile(
+                        email: _emailController.text.trim(),
+                        password: _passwordController.text.trim(),
+                      ));
                     },
                   ),
                   const SizedBox(height: 25),

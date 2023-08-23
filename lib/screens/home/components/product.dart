@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:funica/models/product_model.dart';
 import 'package:funica/route/app_route.dart';
@@ -6,9 +7,10 @@ import 'package:get/route_manager.dart';
 
 class Product extends StatelessWidget {
   final ProductModel product;
+  final Function() favouriteClick;
   const Product({
     super.key,
-    required this.product,
+    required this.product, required this.favouriteClick,
   });
 
   @override
@@ -34,8 +36,8 @@ class Product extends StatelessWidget {
                   Center(
                     child: Hero(
                       tag: product.image,
-                      child: Image.network(
-                        product.image,
+                      child: CachedNetworkImage(
+                        imageUrl: product.image,
                         fit: BoxFit.contain,
                         width: 200,
                         height: 200,
@@ -44,17 +46,19 @@ class Product extends StatelessWidget {
                   ),
                   Align(
                     alignment: Alignment.topRight,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(50),
-                        color: Colors.black87,
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.favorite,
-                          color: Colors.white,
+                    child: GestureDetector(
+                      onTap: favouriteClick,
+                      child: Container(
+                        padding: EdgeInsets.all(6),
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(50),
+                          color: Colors.black87
+                              .withOpacity(0.2),
+                        ),
+                        child: Center(
+                          child: Image.asset('assets/icons/favourite_red.png',),
                         ),
                       ),
                     ),

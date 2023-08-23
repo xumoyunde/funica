@@ -2,11 +2,11 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:funica/components/my_button.dart';
 import 'package:funica/components/my_textfield.dart';
 import 'package:funica/constants/constants.dart';
+import 'package:funica/firebase_helper/auth_controller.dart';
 import 'package:funica/screens/dashboard/dashboard_screen.dart';
 import 'package:funica/screens/fill_your_profile/components/default_appbar.dart';
 import 'package:funica/screens/fill_your_profile/create_new_pin.dart';
@@ -16,7 +16,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../main.dart';
 
 class FillYourProfile extends StatefulWidget {
-  const FillYourProfile({super.key});
+  final String email;
+  final String password;
+
+  const FillYourProfile(
+      {super.key, required this.email, required this.password});
 
   @override
   State<FillYourProfile> createState() => _FillYourProfileState();
@@ -34,7 +38,7 @@ class _FillYourProfileState extends State<FillYourProfile> {
   final _genderController = TextEditingController();
   final _emailController = TextEditingController();
 
-  void _signUp(BuildContext context) {
+  void signUp(BuildContext context) {
     DateTime? dob;
     if (_dobController.text.isNotEmpty) {
       dob = DateTime.tryParse(_dobController.text);
@@ -57,7 +61,7 @@ class _FillYourProfileState extends State<FillYourProfile> {
       body: SingleChildScrollView(
         child: Padding(
           padding:
-          const EdgeInsets.only(top: kToolbarHeight, right: 20, left: 20),
+              const EdgeInsets.only(top: kToolbarHeight, right: 20, left: 20),
           child: Column(
             children: [
               const DefaultAppbar(
@@ -71,18 +75,21 @@ class _FillYourProfileState extends State<FillYourProfile> {
                 children: [
                   _image != null
                       ? ClipRRect(
-                    borderRadius: BorderRadius.circular(mq.height * .3),
-                    child: Image.file(
-                      File(_image!),
-                      width: mq.height * .2,
-                      height: mq.height * .2,
-                      fit: BoxFit.cover,
-                    ),
-                  )
+                          borderRadius: BorderRadius.circular(MediaQuery.of(context).size.height * .3),
+                          child: Image.file(
+                            File(_image!),
+                            width: MediaQuery.of(context).size.height * .2,
+                            height: MediaQuery.of(context).size.height * .2,
+                            fit: BoxFit.cover,
+                          ),
+                        )
                       : ClipRRect(
-                    borderRadius: BorderRadius.circular(mq.height * .3),
-                    child: Image.asset('assets/images/person.png', width: 200,),
-                  ),
+                          borderRadius: BorderRadius.circular(MediaQuery.of(context).size.height * .3),
+                          child: Image.asset(
+                            'assets/images/person.png',
+                            width: 200,
+                          ),
+                        ),
                   Positioned(
                     bottom: 0,
                     right: 0,
@@ -143,7 +150,7 @@ class _FillYourProfileState extends State<FillYourProfile> {
               Container(
                 width: double.infinity,
                 padding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xfff5f5f5),
                   borderRadius: BorderRadius.circular(18),
@@ -164,7 +171,6 @@ class _FillYourProfileState extends State<FillYourProfile> {
                         _genderController.text = newValue;
                       });
                     },
-
                     items: <String>["Male", "Female", "Other"]
                         .map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
@@ -181,20 +187,26 @@ class _FillYourProfileState extends State<FillYourProfile> {
                 title: "Continue",
                 onTap: () {
                   try {
-                    if (fillYourProfileValidation(
-                        _nameController.text, _nicknameController.text,
-                        _dobController.text, _emailController.text,
-                        _phoneController.text, _genderController.text)) {
-                      _signUp(context);
-                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_)=> DashboardScreen()));
+                    if (_nameController.text.isNotEmpty &&
+                        _nicknameController.text.isNotEmpty &&
+                        _dobController.text.isNotEmpty &&
+                        _emailController.text.isNotEmpty &&
+                        _phoneController.text.isNotEmpty &&
+                        _genderController.text.isNotEmpty &&
+                        _emailController.text.trim() == widget.email) {
+                      AuthController authController = AuthController();
+                      authController.signUp(_emailController.text.trim(),
+                          widget.password, _nameController.text.trim());
                     } else {
-                      showMessage('Passwords do not match or validation failed');
+                      showMessage(
+                          'Passwords do not match or validation failed');
                     }
-                  } on FirebaseAuthException catch(e) {
+                  } on FirebaseAuthException catch (e) {
                     showMessage(e.code.toString());
                   }
                 },
-              )
+              ),
+              SizedBox(height: 20),
             ],
           ),
         ),
@@ -212,7 +224,7 @@ class _FillYourProfileState extends State<FillYourProfile> {
           return ListView(
             shrinkWrap: true,
             padding:
-            EdgeInsets.only(top: mq.height * .03, bottom: mq.height * .1),
+                EdgeInsets.only(top: MediaQuery.of(context).size.height * .03, bottom: MediaQuery.of(context).size.height * .1),
             children: [
               const Text(
                 'Profil rasmini tanlang',
@@ -222,7 +234,7 @@ class _FillYourProfileState extends State<FillYourProfile> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              SizedBox(height: mq.height * .02),
+              SizedBox(height: MediaQuery.of(context).size.height * .02),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -231,14 +243,13 @@ class _FillYourProfileState extends State<FillYourProfile> {
                         padding: const EdgeInsets.all(20),
                         shape: const CircleBorder(),
                         backgroundColor: Colors.white,
-                        fixedSize: Size(mq.width * .3, mq.height * .15)),
+                        fixedSize: Size(MediaQuery.of(context).size.width * .3, MediaQuery.of(context).size.height * .15)),
                     onPressed: () async {
                       final ImagePicker picker = ImagePicker();
                       final XFile? image = await picker.pickImage(
                           source: ImageSource.gallery, imageQuality: 80);
                       if (image != null) {
-                        log('Image Path: ${image.path} -- MimeType: ${image
-                            .mimeType}');
+                        log('Image Path: ${image.path} -- MimeType: ${image.mimeType}');
                         setState(() {
                           _image = image.path;
                         });
@@ -254,7 +265,7 @@ class _FillYourProfileState extends State<FillYourProfile> {
                         padding: const EdgeInsets.all(20),
                         shape: const CircleBorder(),
                         backgroundColor: Colors.white,
-                        fixedSize: Size(mq.width * .3, mq.height * .15)),
+                        fixedSize: Size(MediaQuery.of(context).size.width * .3, MediaQuery.of(context).size.height * .15)),
                     onPressed: () async {
                       final ImagePicker picker = ImagePicker();
                       final XFile? image = await picker.pickImage(
@@ -272,7 +283,7 @@ class _FillYourProfileState extends State<FillYourProfile> {
                     ),
                   ),
                 ],
-              )
+              ),
             ],
           );
         });

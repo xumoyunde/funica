@@ -73,21 +73,6 @@ bool loginValidation(String email, String password) {
   }
 }
 
-bool signUpValidation(String email, String password, String confirmPassword) {
-  if (email.isNotEmpty &&
-      password.isNotEmpty &&
-      confirmPassword.isNotEmpty &&
-      password == confirmPassword) {
-    return true;
-  } else if (password != confirmPassword) {
-    showMessage('Passwords cannot be different');
-    return false;
-  } else {
-    showMessage('Fields Cannot Be Empty');
-    return false;
-  }
-}
-
 bool fillYourProfileValidation(String name, String nickname, String dob,
     String email, String phone, String gender) {
   if (name.isNotEmpty &&

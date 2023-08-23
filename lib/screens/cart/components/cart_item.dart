@@ -46,7 +46,7 @@ class _CartItemState extends State<CartItem> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Image.network(
-                  widget.productModel.image!,
+                  widget.productModel.image,
                   fit: BoxFit.contain,
                 ),
               ),
@@ -60,7 +60,7 @@ class _CartItemState extends State<CartItem> {
                       children: [
                         Expanded(
                           child: Text(
-                            widget.productModel.name!,
+                            widget.productModel.name,
                             style: const TextStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.bold,
@@ -107,7 +107,7 @@ class _CartItemState extends State<CartItem> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "\$${widget.productModel.price!}",
+                          "\$${widget.productModel.price}",
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.bold,

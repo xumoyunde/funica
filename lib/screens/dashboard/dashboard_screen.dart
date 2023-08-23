@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:funica/firebase_helper/auth_controller.dart';
 import 'package:funica/route/app_route.dart';
 import 'package:funica/screens/cart/cart_screen.dart';
 import 'package:funica/screens/home/home_screen.dart';
+import 'package:funica/screens/profile/profile_screen.dart';
 import 'package:funica/screens/toggle/toggle_page.dart';
 import 'package:get/get.dart';
 
@@ -28,16 +30,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const HomeScreen(),
             const CartScreen(),
             const Text('Hello world cart'),
-            Container(),
-            Center(
-              child: IconButton(
-                onPressed: () {
-                  FirebaseAuth.instance.signOut();
-                  Get.put(AppRoute.login);
-                },
-                icon: const Icon(Icons.login_outlined),
+            Container(
+              child: Center(
+                child: MaterialButton(
+                  onPressed: (){
+                    AuthController().signOut();
+                    Get.toNamed(AppRoute.login);
+                  },
+                ),
               ),
-            )
+            ),
+            ProfileScreen(),
           ],
         ),
       ),
